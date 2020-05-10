@@ -52,7 +52,7 @@ function createdOffer(description) {
 
   remotePeerConnection.setRemoteDescription(description);
 
-  remotePeerConnection.createAnswer().then(createdAnswer).catch();
+  remotePeerConnection.createAnswer().then(createdAnswer);
 }
 
 function createdAnswer(description) {
@@ -75,8 +75,7 @@ function startAction() {
   startButton.disabled = true;
   navigator.mediaDevices
     .getUserMedia(mediaStreamConstraints)
-    .then(gotLocalMediaStream)
-    .catch();
+    .then(gotLocalMediaStream);
 }
 
 function callAction() {
@@ -102,7 +101,7 @@ function callAction() {
   localPeerConnection.addStream(localStream);
 
   // @ts-ignore
-  localPeerConnection.createOffer(offerOptions).then(createdOffer).catch();
+  localPeerConnection.createOffer(offerOptions).then(createdOffer);
 }
 
 function hangupAction() {
