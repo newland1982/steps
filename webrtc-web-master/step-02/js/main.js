@@ -13,7 +13,6 @@ const localVideo = document.getElementById('localVideo');
 const remoteVideo = document.getElementById('remoteVideo');
 
 let localStream;
-let remoteStream;
 
 let localPeerConnection;
 let remotePeerConnection;
@@ -22,15 +21,12 @@ function gotLocalMediaStream(mediaStream) {
   // @ts-ignore
   localVideo.srcObject = mediaStream;
   localStream = mediaStream;
-  // @ts-ignore
-  callButton.disabled = false;
 }
 
 function gotRemoteMediaStream(event) {
   const mediaStream = event.stream;
   // @ts-ignore
   remoteVideo.srcObject = mediaStream;
-  remoteStream = mediaStream;
 }
 
 function handleConnection(event) {
@@ -63,25 +59,13 @@ const startButton = document.getElementById('startButton');
 const callButton = document.getElementById('callButton');
 const hangupButton = document.getElementById('hangupButton');
 
-// @ts-ignore
-callButton.disabled = true;
-// @ts-ignore
-hangupButton.disabled = true;
-
 function startAction() {
-  // @ts-ignore
-  startButton.disabled = true;
   navigator.mediaDevices
     .getUserMedia(mediaStreamConstraints)
     .then(gotLocalMediaStream);
 }
 
 function callAction() {
-  // @ts-ignore
-  callButton.disabled = true;
-  // @ts-ignore
-  hangupButton.disabled = false;
-
   const servers = null;
 
   localPeerConnection = new RTCPeerConnection(servers);
@@ -105,10 +89,6 @@ function hangupAction() {
   remotePeerConnection.close();
   localPeerConnection = null;
   remotePeerConnection = null;
-  // @ts-ignore
-  hangupButton.disabled = true;
-  // @ts-ignore
-  callButton.disabled = false;
 }
 
 startButton.addEventListener('click', startAction);
