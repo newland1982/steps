@@ -9,8 +9,6 @@ const offerOptions = {
   offerToReceiveVideo: 1,
 };
 
-let startTime = null;
-
 const localVideo = document.getElementById('localVideo');
 const remoteVideo = document.getElementById('remoteVideo');
 
@@ -83,8 +81,6 @@ function callAction() {
   callButton.disabled = true;
   // @ts-ignore
   hangupButton.disabled = false;
-
-  startTime = window.performance.now();
 
   const servers = null;
 
