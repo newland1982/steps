@@ -1,35 +1,133 @@
+// @ts-ignore
 'use strict';
 
-// On this codelab, you will be streaming only video (video: true).
 const mediaStreamConstraints = {
   video: true,
 };
 
-// Video element where stream will be placed.
-const localVideo = document.querySelector('video');
+const offerOptions = {
+  offerToReceiveVideo: 1,
+};
 
-// Local stream that will be reproduced on the video.
+let startTime = null;
+
+const localVideo = document.getElementById('localVideo');
+const remoteVideo = document.getElementById('remoteVideo');
+
 let localStream;
+let remoteStream;
 
-// Handles success by adding the MediaStream to the video element.
+let localPeerConnection;
+let remotePeerConnection;
+
 function gotLocalMediaStream(mediaStream) {
-  localStream = mediaStream;
+  // @ts-ignore
   localVideo.srcObject = mediaStream;
+  localStream = mediaStream;
+  // @ts-ignore
+  callButton.disabled = false;
 }
 
-// Handles error by logging a message to the console with the error message.
-function handleLocalMediaStreamError(error) {
-  console.log('navigator.getUserMedia error: ', error);
+function gotRemoteMediaStream(event) {
+  const mediaStream = event.stream;
+  // @ts-ignore
+  remoteVideo.srcObject = mediaStream;
+  remoteStream = mediaStream;
 }
 
-// Initializes media stream.
-(async () => {
-  try {
-    const mediaStream = await navigator.mediaDevices.getUserMedia(
-      mediaStreamConstraints
-    );
-    gotLocalMediaStream(mediaStream);
-  } catch (error) {
-    handleLocalMediaStreamError(error);
+function handleConnection(event) {
+  const peerConnection = event.target;
+  const iceCandidate = event.candidate;
+
+  if (iceCandidate) {
+    const newIceCandidate = new RTCIceCandidate(iceCandidate);
+    const otherPeer = getOtherPeer(peerConnection);
+
+    otherPeer.addIceCandidate(newIceCandidate);
   }
-})();
+}
+
+function createdOffer(description) {
+  localPeerConnection.setLocalDescription(description);
+
+  remotePeerConnection.setRemoteDescription(description);
+
+  remotePeerConnection.createAnswer().then(createdAnswer).catch();
+}
+
+function createdAnswer(description) {
+  remotePeerConnection.setLocalDescription(description);
+
+  localPeerConnection.setRemoteDescription(description);
+}
+
+const startButton = document.getElementById('startButton');
+const callButton = document.getElementById('callButton');
+const hangupButton = document.getElementById('hangupButton');
+
+// @ts-ignore
+callButton.disabled = true;
+// @ts-ignore
+hangupButton.disabled = true;
+
+function startAction() {
+  // @ts-ignore
+  startButton.disabled = true;
+  navigator.mediaDevices
+    .getUserMedia(mediaStreamConstraints)
+    .then(gotLocalMediaStream)
+    .catch();
+}
+
+function callAction() {
+  // @ts-ignore
+  callButton.disabled = true;
+  // @ts-ignore
+  hangupButton.disabled = false;
+
+  startTime = window.performance.now();
+
+  const servers = null;
+
+  localPeerConnection = new RTCPeerConnection(servers);
+
+  localPeerConnection.addEventListener('icecandidate', handleConnection);
+
+  remotePeerConnection = new RTCPeerConnection(servers);
+
+  remotePeerConnection.addEventListener('icecandidate', handleConnection);
+  remotePeerConnection.addEventListener('addstream', gotRemoteMediaStream);
+
+  // @ts-ignore
+  localPeerConnection.addStream(localStream);
+
+  // @ts-ignore
+  localPeerConnection.createOffer(offerOptions).then(createdOffer).catch();
+}
+
+function hangupAction() {
+  localPeerConnection.close();
+  remotePeerConnection.close();
+  localPeerConnection = null;
+  remotePeerConnection = null;
+  // @ts-ignore
+  hangupButton.disabled = true;
+  // @ts-ignore
+  callButton.disabled = false;
+}
+
+startButton.addEventListener('click', startAction);
+callButton.addEventListener('click', callAction);
+hangupButton.addEventListener('click', hangupAction);
+
+function getOtherPeer(peerConnection) {
+  return peerConnection === localPeerConnection
+    ? remotePeerConnection
+    : localPeerConnection;
+}
+
+function getPeerName(peerConnection) {
+  return peerConnection === localPeerConnection
+    ? 'localPeerConnection'
+    : 'remotePeerConnection';
+}
